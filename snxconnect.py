@@ -89,6 +89,7 @@ class HTML_Requester (object) :
         if self.args.ssl_noverify:
             handlers.append(HTTPSHandler(context=context))
         self.opener   = build_opener (*handlers)
+        self.opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36')]
         self.nextfile = args.file
     # end def __init__
 
