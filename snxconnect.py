@@ -93,6 +93,21 @@ class HTML_Requester (object) :
         self.nextfile = args.file
     # end def __init__
 
+    def change_etc_resolvconf(self):
+        # copied from Nil Bühner (https://github.com/buehner/snxvpn/commit/66b473ee23de60bc66f59fcdb1389629b037fa40)
+        resolvConfFile = open("/etc/resolv.conf", "r")
+
+        lines = resolvConfFile.readlines()
+        resolvConfFile.close()
+
+        newResolvConf = open("/etc/resolv.conf", "w+")
+
+        for line in lines:
+            if not line.startswith("nameserver 10."):
+                newResolvConf.write(line)
+
+        newResolvConf.close()
+
     def call_snx (self) :
         """ The snx binary usually lives in the default snxpath and is
             setuid root. We call it with the undocumented '-Z' option.
@@ -121,6 +136,8 @@ class HTML_Requester (object) :
             f.write (answer)
             f.close ()
         print ("SNX connected, to leave VPN open, leave this running!")
+
+        self.change_etc_resolvconf()
         try:
             while True:
                 time.sleep(4000000)
@@ -134,6 +151,9 @@ class HTML_Requester (object) :
                 sys.exit(0)
             except SystemExit:
                 os._exit(0)
+        except:
+            print ("Unexpected error:", sys.exc_info()[0])
+            raise
     # end def call_snx
 
     def debug (self, s) :
@@ -216,7 +236,7 @@ class HTML_Requester (object) :
         password =  rsa.pkcs1.encrypt(self.args.password.encode('UTF-8'), rsa.PublicKey(self.modulus, self.exponent))
         password = ''.join ('%02x' % b_ord (c) for c in reversed (password))
         d = dict \
-            ( password      = password 
+            ( password      = password
             , userName      = self.args.username
             , selectedRealm = self.args.realm
             , loginType     = self.args.login_type
